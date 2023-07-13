@@ -3,37 +3,32 @@ from bs4 import BeautifulSoup
 import csv
 import datetime
 
-url = 'https://delivery.bergamini.com.br/produtos/hipermercado-bergamini-jacana/setores/bebidas/cervejas'
+url = 'https://delivery.bergamini.com.br/produtos/hipermercado-bergamini-jacana/produto/50574-cerveja-pilsen-puro-malte-imperio-lata-269ml'
 
 response = requests.get(url)
-soup = BeautifulSoup(response.text, 'html.parser')
-
-#encontrar todos os itens da lista de cerjevas
-cervejas = soup.find_all('div', {'class': 'item'})
+soup = BeautifulSoup(response.content, 'html.parser')
 
 # Obter a data atual
-data_atual = datetime.datetime.now().strftime('%d/%m/%Y')
+data_atual = datetime.datetime.now().strftime('%Y-%m-%d')
 
-# Abre o arquivo csv para escrita
-with open('bergamini_precos.csv', 'w', newline='') as csvfile:
-    # Cria o objeto de gravação
-    writer = csv.writer(csvfile, delimiter=';')
+# Nome do arquivo CSV com data
+nome_arquivo = f"preco_imperio_{data_atual}.csv"
 
-    # Escreve o cabeçalho
-    writer.writerow(['Data', 'Nome', 'Preço atual', 'Preço antigo'])
+# Abre o arquivo CSV para escrita
+with open(nome_arquivo, mode='w', newline='') as arquivo_csv:
+    # Cria o objeto writer
+    writer = csv.writer(arquivo_csv)
 
+    # Escreve o cabeçalho do arquivo CSV
+    writer.writerow(['Produto', 'Preço atual', 'Preço antigo'])
 
-# Loop pelos itens de cerveja
-for cerveja in cervejas:
+    # Encontra o item de cerveja Império
+    cerveja = soup.find('div', {'class': 'item product'})
+
+    # Extrai as informações de preço da cerveja Império
     nome = cerveja.find('div', {'class': 'name'}).text.strip()
     preco_atual = cerveja.find('div', {'class': 'current-price'}).text.strip()
     preco_antigo = cerveja.find('div', {'class': 'old-price'}).text.strip()
 
-# Escreve as informações no arquivo csv
-writer.writerow([data_atual, nome, preco_atual, preco_antigo])
-
-# Imprime as informações no console
-print(data_atual, nome, preco_atual, preco_antigo)
-
-# Path: berga_precos.py
-
+    # Escreve as informações em uma linha do arquivo CSV
+    writer.writerow([nome, preco_atual, preco_antigo])
